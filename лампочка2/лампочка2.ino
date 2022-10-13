@@ -24,9 +24,6 @@ void loop() {
     val_min = val;
   }
 
-  Serial.println(val_max);
-  Serial.println(val_min);
-
   if (val < (val_max + val_min)/2) 
   {
     digitalWrite(led_pin, HIGH); 
