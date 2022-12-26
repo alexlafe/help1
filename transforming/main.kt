@@ -1,10 +1,10 @@
 fun main()
 {
     val figures: Array<Movable>
-    val rect: Transforming = Rect(4,3,4,2)
-    val rect_m: Movable = Rect(4,3,4,2)
+    val rect: Transforming = Rect(2,1,5,3)
+    val rect_m: Movable = Rect(2,1,5,3)
 
-    val f: Figure = Rect(0,0,1,1)
+    val f: Figure = Rect(0,0,2,3)
     val f2: Figure = Circle(0,0,2)
 
     println(rect.rotate(RotateDirection.Clockwise,3, -3))
