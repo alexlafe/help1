@@ -1,9 +1,9 @@
-int motorRight1 = 4;       // Правый мотор.
-int motorRight2 = 5;
+int motorRight1 = 4; //направление
+int motorRight2 = 5; //скорость
 //56 СКОРОСТЬ
 //47 НАПРАВЛЕНИЕ
-int motorLeft1 = 6;        // Левый мотор.
-int motorLeft2 = 7;
+int motorLeft1 = 6; //скорость
+int motorLeft2 = 7; //направление
 
 int pin_trig = 9;
 int pin_echo = 10;
@@ -14,8 +14,13 @@ long cm = 0;
 
 int IPin = A0;
 
-int control;               // Управление двигателями.
-int motorSpeed;            // Управление скоростью.
+int control; // Управление двигателями.
+int motorSpeed; // Управление скоростью.
+
+bool status_stop = false;
+bool status_forward = false;
+bool status_left = false;
+bool status_right = false;
 
 void setup() {
   pinMode (motorRight1, OUTPUT);
@@ -27,37 +32,13 @@ void setup() {
   pinMode(pin_trig, OUTPUT);
   pinMode(pin_echo, INPUT);
 
-  digitalWrite(pin_trig, LOW);
-  delayMicroseconds(5);
-  digitalWrite(pin_trig, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(pin_trig, LOW);
-  duration = pulseIn(pin_echo, HIGH);
-
   Serial.begin (9600);
-}
-
-void rotate_right()
-{
-    digitalWrite (motorLeft2, HIGH);
-    analogWrite (motorLeft1, 250);
-    digitalWrite (motorRight1, HIGH);
-    analogWrite (motorRight2, 0);
-}
-
-void rotate_left()
-{
-    digitalWrite (motorLeft2, HIGH);
-    analogWrite (motorLeft1, 0);
-    digitalWrite (motorRight1, HIGH);
-    analogWrite (motorRight2, 250);
 }
 
 void loop()
 {
   float volts = analogRead(IPin)*0.0048828125;
-  float distance = 32*pow(volts,-1.10);
-  Serial.println(distance);
+  float distance_left = 32*pow(volts,-1.10);
   
   duration_pre = duration;
 
@@ -67,39 +48,65 @@ void loop()
   delayMicroseconds(10);
   digitalWrite(pin_trig, LOW);
   duration = pulseIn(pin_echo, HIGH);
-  cm = (duration / 2) / 29.1;
-  Serial.println(cm);
+  float distance_forward = (duration / 2) / 29.1;
+  Serial.println(distance_forward);
   delay(250);
 
-  if (cm < 30)
-  {
-    digitalWrite (motorLeft2, HIGH);
-    analogWrite (motorLeft1, 0);
-    digitalWrite (motorRight1, HIGH);
-    analogWrite (motorRight2, 0);
-    if (distance < 30)
-    {
-      rotate_right();
-    }
-  }
-  
-  else if (cm > 30 && distance > 30)
-  {
-    Serial.println("fkfkf");
-    digitalWrite (motorLeft2, HIGH);
-    analogWrite (motorLeft1, 0);
-    digitalWrite (motorRight1, HIGH);
-    analogWrite (motorRight2, 0);
-
-    rotate_left();
-  }
-  else if (distance < 30 && cm > 30)
+  if (status_forward)
   {
     digitalWrite (motorLeft2, HIGH);
     analogWrite (motorLeft1, 250);
     digitalWrite (motorRight1, HIGH);
     analogWrite (motorRight2, 250);
   }
+
+  if (status_right)
+  {
+    digitalWrite (motorLeft2, HIGH);
+    analogWrite (motorLeft1, 250);
+    digitalWrite (motorRight1, LOW);
+    analogWrite (motorRight2, 150);
+  }
+
+  if (status_left)
+  {
+    digitalWrite (motorLeft2, LOW);
+    analogWrite (motorLeft1, 120);
+    digitalWrite (motorRight1, HIGH);
+    analogWrite (motorRight2, 250);
+  }
+
+  if (distance_forward < 30)
+  {
+    status_stop = true;
+    status_forward = false;
+    status_right = false;
+    status_left = false;
+
+    if (distance_left < 30)
+    {
+      status_stop = false;
+      status_forward = false;
+      status_right = true;
+      status_left = false;
+    }
+  }
+  
+  else if (distance_left > 30)
+  {
+    status_stop = false;
+    status_forward = false;
+    status_right = false;
+    status_left = true;
+  }
+
+  else if (distance_left < 30 && distance_forward > 30)
+  {
+    status_stop = false;
+    status_forward = true;
+    status_right = false;
+    status_left = false;
+  }
+
+  delay(500);
 }
-
-
